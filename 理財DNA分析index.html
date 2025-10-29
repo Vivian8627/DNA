@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>你的理財人格測驗：是獵手還是控管者？</title>
+    <!-- 使用系統字體堆疊，滿足手機與桌面瀏覽器的要求 -->
+    <style>
+        :root {
+            /* 定義主色調 */
+            --primary-color: #4f46e5; /* 靛藍色 */
+            --primary-dark: #4338ca;
+            --background-color: #f3f4f6;
+            --card-background: #ffffff;
+            --text-color: #1f2937;
+            --text-light: #6b7280;
+            --shadow-color: rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        /* 主要容器 RWD 設置 */
+        .container {
+            width: 100%;
+            max-width: 100%;
+            padding: 1rem;
+        }
+        
+        @media (min-width: 768px) {
+            .container {
+                max-width: 600px; /* 桌面置中，限制最大寬度 */
+                padding: 2rem;
+            }
+        }
+
+        /* 卡片通用樣式 */
+        .card {
+            background-color: var(--card-background);
+            border-radius: 16px;
+            box-shadow: 0 10px 15px -3px var(--shadow-color), 0 4px 6px -2px var(--shadow-color);
+            padding: 1.5rem;
+            margin: 0 auto; /* 置中 */
+        }
+        
+        @media (min-width: 768px) {
+            .card {
+                padding: 2.5rem;
+            }
+        }
+
+        /* 標籤/錯誤訊息 */
+        .label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--text-color);
+            font-size: 1rem;
+        }
+        
+        .error-message {
+            color: #ef4444; /* 紅色 */
+            font-weight: 600;
+            margin-top: 0.5rem;
+            text-align: center;
+        }
+
+        /* ---------------------------------- */
+        /* 1. 輸入框樣式 */
+        /* ---------------------------------- */
+        input[type="text"] {
+            width: 100%;
+            padding: 0.75rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 1rem;
+            box-sizing: border-box;
+            transition: border-color 0.2s;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
+        }
+
+        /* ---------------------------------- */
+        /* 2. 選項按鈕組樣式 */
+        /* ---------------------------------- */
+        .option-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .option-group-full button {
+            width: 100%; /* 手機上選項按鈕佔滿全寬 */
+            height: auto; /* 高度自適應 */
+            min-height: 48px; /* 最小高度 48px */
+            padding: 0.75rem 1rem;
+        }
+
+        /* ---------------------------------- */
+        /* 3. 按鈕通用樣式 (Button) */
+        /* ---------------------------------- */
+        .btn {
+            background-color: #e5e7eb; /* 淺灰色預設 */
+            color: var(--text-color);
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s ease-in-out;
+            box-shadow: 0 2px 5px var(--shadow-color);
+            user-select: none; /* 避免選中文字 */
+            min-height: 48px; /* 確保手機好按 */
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: var(--card-background);
+            box-shadow: 0 4px 8px rgba(79, 70, 229, 0.4);
+        }
+
+        .btn:hover:not([disabled]) {
+            filter: brightness(1.05);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
+        }
+        
+        .btn:active:not([disabled]) {
+            transform: scale(0.98); /* 點擊縮放效果 */
+            filter: brightness(0.9);
+        }
+        
+        .btn[disabled] {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* ---------------------------------- */
+        /* 4. 選中樣式 (Selected/Active) */
+        /* ---------------------------------- */
+        .btn-selected {
+            background-color: var(--primary-color);
+            color: var(--card-background);
+            border: 2px solid var(--primary-dark);
+            box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.2); /* 額外的光環 */
+        }
+
+        .btn-option:not(.btn-selected) {
+             background-color: #f9fafb; /* 淺色選項底色 */
+             border: 1px solid #e5e7eb;
+        }
+
+        /* ---------------------------------- */
+        /* 5. 題目頁特定樣式 */
+        /* ---------------------------------- */
+        .progress-bar {
+            height: 10px;
+            background-color: #e5e7eb;
+            border-radius: 5px;
+            margin-bottom: 1.5rem;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            width: 0%;
+            background-color: var(--primary-color);
+            transition: width 0.5s ease-in-out;
+            border-radius: 5px;
+        }
+        
+        /* 兩個按鈕並排時的間距 */
+        .flex-buttons {
+            display: flex;
+            gap: 1rem;
+        }
+        /* 讓 Back 按鈕是淺色的 */
+        #back-button {
+             background-color: #d1d5db;
+        }
+
+        /* ---------------------------------- */
+        /* 6. 結果頁特定樣式 */
+        /* ---------------------------------- */
+        .result-code {
+            font-size: 3rem;
+            font-weight: 900;
+            color: var(--primary-color);
+            letter-spacing: 0.1em;
+            margin-bottom: 0.5rem;
+        }
+
+        .result-name {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: var(--text-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .result-tagline {
+            display: inline-block;
+            background-color: #fef3c7; /* 淺黃色 */
+            color: #d97706; /* 深黃色 */
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+        
+        .disclaimer {
+            font-size: 0.75rem;
+            color: var(--text-light);
+            text-align: center;
+            margin-top: 1.5rem;
+        }
+
+        /* ---------------------------------- */
+        /* 7. 訊息提示框樣式 (Toast/Snackbar) */
+        /* ---------------------------------- */
+        #message-box {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #10b981; /* 綠色，成功 */
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            /* 手機 RWD 調整 */
+            max-width: 90%; 
+            text-wrap: balance;
+        }
+
+        .visible {
+            opacity: 1 !important;
+        }
+        
+        /* 隱藏不活躍的區塊 */
+        .hidden {
+            display: none !important;
+        }
+
+        /* ---------------------------------- */
+        /* 8. 列印媒體查詢 (PDF 輸出優化) */
+        /* ---------------------------------- */
+        @media print {
+            body {
+                background-color: #ffffff; /* 列印背景為白色 */
+                display: block; /* 移除 flex 佈局 */
+                min-height: auto;
+                padding: 0;
+                margin: 0;
+            }
+            .container {
+                max-width: none;
+                padding: 0;
+            }
+            .card {
+                box-shadow: none; /* 移除陰影 */
+                border-radius: 0;
+                padding: 1cm; /* 設定邊距 */
+            }
+            /* 隱藏所有互動元素和不必要的元素 */
+            #info-section, #quiz-section, .btn, .disclaimer, #message-box {
+                display: none !important;
+            }
+            /* 只顯示結果頁面 */
+            #result-section {
+                display: block !important;
+                margin: 0;
+                padding: 0;
+            }
+            /* 確保文字顏色為黑色，以便列印 */
+            .result-name, .text-left {
+                color: #000000 !important;
+            }
+            /* 確保結果區塊的背景色在列印時不會導致墨水浪費，改為邊框強調 */
+            .p-4 {
+                background-color: #f7f7f7 !important; /* 淺灰色背景 */
+                -webkit-print-color-adjust: exact; /* 確保背景色列印出來 */
+                print-color-adjust: exact;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        
+        <!-- ---------------------------------------------------- -->
+        <!-- 階段 1: 基本資料頁 (User Info) -->
+        <!-- ---------------------------------------------------- -->
+        <section id="info-section" class="card">
+            <h2 class="text-2xl font-bold mb-6 text-center" style="color: var(--primary-color);">
+                來！先交個底，我們才能開始嘴砲😈
+            </h2>
+            
+            <!-- 欄位 1: 本名 -->
+            <div class="mb-4">
+                <label for="user-name" class="label">你的本名是？（真的本名，不要寫「帥哥」）</label>
+                <input type="text" id="user-name" placeholder="例如：林冠豪" required>
+            </div>
+
+            <!-- 欄位 2: 性別 (兩選一) -->
+            <div class="mb-4">
+                <span class="label">性別</span>
+                <div id="gender-group" class="option-group">
+                    <button type="button" class="btn btn-option" data-value="男" onclick="selectOption('gender', '男', this)">男</button>
+                    <button type="button" class="btn btn-option" data-value="女" onclick="selectOption('gender', '女', this)">女</button>
+                </div>
+            </div>
+
+            <!-- 欄位 3: 年齡範圍 (多選一) -->
+            <div class="mb-4">
+                <span class="label">你的年齡範圍？</span>
+                <div id="age-group" class="option-group">
+                    <button type="button" class="btn btn-option" data-value="20歲以下" onclick="selectOption('age', '20歲以下', this)">20歲以下</button>
+                    <button type="button" class="btn btn-option" data-value="20–24" onclick="selectOption('age', '20–24', this)">20–24</button>
+                    <button type="button" class="btn btn-option" data-value="25–29" onclick="selectOption('age', '25–29', this)">25–29</button>
+                    <button type="button" class="btn btn-option" data-value="30–34" onclick="selectOption('age', '30–34', this)">30–34</button>
+                    <button type="button" class="btn btn-option" data-value="35–39" onclick="selectOption('age', '35–39', this)">35–39</button>
+                    <button type="button" class="btn btn-option" data-value="40–44" onclick="selectOption('age', '40–44', this)">40–44</button>
+                    <button type="button" class="btn btn-option" data-value="45–49" onclick="selectOption('age', '45–49', this)">45–49</button>
+                    <button type="button" class="btn btn-option" data-value="50–54" onclick="selectOption('age', '50–54', this)">50–54</button>
+                    <button type="button" class="btn btn-option" data-value="55–59" onclick="selectOption('age', '55–59', this)">55–59</button>
+                    <button type="button" class="btn btn-option" data-value="60歲以上" onclick="selectOption('age', '60歲以上', this)">60歲以上</button>
+                </div>
+            </div>
+
+            <!-- 欄位 4: 投資經驗 (四選一) -->
+            <div>
+                <span class="label">投資經驗，目前最接近你的是哪一種？</span>
+                <div id="experience-group" class="option-group option-group-full">
+                    <button type="button" class="btn btn-option" data-value="我還在了解怎麼運作，先看看而已" onclick="selectOption('experience', '我還在了解怎麼運作，先看看而已', this)">我還在了解怎麼運作，先看看而已</button>
+                    <button type="button" class="btn btn-option" data-value="我有下過單，算是邊做邊學" onclick="selectOption('experience', '我有下過單，算是邊做邊學', this)">我有下過單，算是邊做邊學</button>
+                    <button type="button" class="btn btn-option" data-value="我固定有在投資，算日常的一部分了" onclick="selectOption('experience', '我固定有在投資，算日常的一部分了', this)">我固定有在投資，算日常的一部分了</button>
+                    <button type="button" class="btn btn-option" data-value="投資基本上是我的日常運動之一" onclick="selectOption('experience', '投資基本上是我的日常運動之一', this)">投資基本上是我的日常運動之一</button>
+                </div>
+            </div>
+            
+            <!-- 錯誤訊息移到按鈕上方 -->
+            <div id="info-error-message" class="error-message hidden mb-4">
+                還沒填完喔 👀
+            </div>
+
+            <button type="button" class="btn btn-primary w-full mt-4" onclick="handleInfoSubmit()">
+                開始測驗
+            </button>
+        </section>
+
+        <!-- ---------------------------------------------------- -->
+        <!-- 階段 2: 題目作答頁 (Quiz) -->
+        <!-- ---------------------------------------------------- -->
+        <section id="quiz-section" class="card hidden">
+            
+            <!-- 進度條 -->
+            <h3 class="text-center font-semibold mb-2" style="color: var(--text-light);">
+                題目進度：<span id="current-progress"></span>
+            </h3>
+            <div class="progress-bar">
+                <div id="progress-fill" class="progress-fill"></div>
+            </div>
+
+            <!-- 題目區域 -->
+            <div id="question-area">
+                <!-- 題目和選項會動態載入到這裡 -->
+            </div>
+
+            <div id="quiz-error-message" class="error-message hidden mt-4">
+                <!-- 錯誤訊息會在這裡顯示 -->
+            </div>
+
+            <div class="mt-6 flex gap-4">
+                <button id="back-button" type="button" class="btn w-1/2 hidden" onclick="prevQuestion()">
+                    上一題
+                </button>
+                <button id="next-button" type="button" class="btn btn-primary w-full" onclick="nextQuestion()">
+                    下一題
+                </button>
+            </div>
+        </section>
+
+        <!-- ---------------------------------------------------- -->
+        <!-- 階段 3: 結果頁 (Result) -->
+        <!-- ---------------------------------------------------- -->
+        <section id="result-section" class="card hidden text-center">
+            <h2 id="result-greeting" class="text-xl font-bold mb-4" style="color: var(--text-color);">
+                <!-- 嗨，{{name}}！你的理財人格是—— -->
+            </h2>
+            
+            <div id="result-display-area" class="mt-8">
+                <!-- 人格分析結果會動態載入到這裡 -->
+            </div>
+
+            <!-- 分享按鈕 (觸發列印/儲存為 PDF) -->
+            <button type="button" class="btn btn-primary w-full mt-8" onclick="printResult()">
+                分享我的理財人格 🚀
+            </button>
+            
+            <button type="button" class="btn w-full mt-4" onclick="resetQuiz()">
+                再玩一次
+            </button>
+        </section>
+        
+        <p class="disclaimer">
+            本測驗僅供投資風格傾向參考，非投資建議，投資仍須自行判斷風險與適合度。
+        </p>
+
+    </div>
+    
+    <!-- 訊息提示框 (取代 alert) -->
+    <div id="message-box" class="message-box"></div>
+
+    <script>
+        // ----------------------------------------------------
+        // 全域狀態與資料定義
+        // ----------------------------------------------------
+
+        // 修正：將 let/const 變更為 var，以提高舊版瀏覽器/環境的相容性，避免 SyntaxError
+        var userInfo = {};
+        var currentQuestionIndex = 0; // 0-based index
+        
+        // 新增 answerHistory 儲存所有答案，以便回上一頁
+        var totalQuestions = 8;
+        var answerHistory = Array(totalQuestions).fill(null); // 初始化為 null
+        var selectedChoiceValue = null;
+
+        const infoSection = document.getElementById('info-section');
+        const quizSection = document.getElementById('quiz-section');
+        const resultSection = document.getElementById('result-section');
+        const infoError = document.getElementById('info-error-message');
+        const quizError = document.getElementById('quiz-error-message');
+        const nextButton = document.getElementById('next-button');
+        const backButton = document.getElementById('back-button');
+        const progressFill = document.getElementById('progress-fill');
+        const currentProgress = document.getElementById('current-progress');
+        const questionArea = document.getElementById('question-area');
+        const messageBox = document.getElementById('message-box');
+
+        // 題目文案與計分對應 (MANDATORY DATA)
+        const questions = [
+            { id: 1, question: "領到年終獎金10萬，你的第一反應是？", options: ["終於有彈藥！研究幾個標的，該出手了🔥", "先拿去存一半，剩下一半再投資，比較穩", "想去旅遊或犒賞自己，人生要及時行樂", "拿去問ChatGPT看該買哪支ETF（誤）"] },
+            { id: 2, question: "朋友說最近某檔ETF「人人都在買」，你會怎麼反應？", options: ["冷靜查資料，看它憑什麼紅", "小試一張，感覺不錯就多買點", "大家都買了我不能錯過啊！", "我對熱門的東西一律警戒"] },
+            { id: 3, question: "看到股價跌了5%，你會？", options: ["開心！又可以撿便宜", "觀望幾天，搞不好會再跌", "有點焦躁但還能撐", "關APP假裝沒看到"] },
+            { id: 4, question: "你投資最常靠什麼？", options: ["數據報表＋邏輯分析", "心中小劇場：「我感覺它會漲！」", "群組裡大家都說不錯，那應該穩吧？", "看設計感，有質感的企業我就想投"] },
+            { id: 5, question: "投資對你來說比較像哪種遊戲？", options: ["模擬城市：我規劃長遠，慢慢建", "俄羅斯方塊：需要反應快、手腳俐落", "密室逃脫：刺激、有風險但有成就感", "動森：只要穩定存錢、看島上成長就開心"] },
+            { id: 6, question: "假如你的投資帳戶可以說話，它會怎麼形容你？", options: ["「紀律派代表！你連我都敬佩😌」", "「你是變化多端的藝術家，一天一個想法」", "「你很穩，但有時也太佛了吧？」", "「你常半夜登入，衝一波又秒登出😂」"] },
+            { id: 7, question: "市場大漲時你會？", options: ["冷靜提醒自己『別被貪婪控制』", "看一下有沒有機會補倉", "衝進去啊！錯過會睡不著！", "幫朋友開心，自己不敢動"] },
+            { id: 8, question: "你最理想的投資生活是？", options: ["系統化、能自動幫我執行", "自己掌控節奏、有彈性調整", "和朋友討論、一起學習成長", "投資只是生活的一部分，不想太緊繃"] },
+        ];
+        
+        // 題目與分數對應表
+        const scoreMap = {
+            1: { A: "ARC", B: "ASC", C: "ISC", D: "IRN" },
+            2: { A: "ASC", B: "ARC", C: "ARC", D: "ISC" },
+            3: { A: "ARC", B: "ASC", C: "ISC", D: "ISC" },
+            4: { A: "ASC", B: "ARC", C: "IRN", D: "ISC" },
+            5: { A: "ASC", B: "ARC", C: "ARC", D: "ISC" },
+            6: { A: "ASC", B: "ARC", C: "ISC", D: "ARC" },
+            7: { A: "ASC", B: "ARC", C: "ARC", D: "ISC" },
+            8: { A: "ASC", B: "ARC", C: "IRN", D: "ISC" },
+        };
+
+        // 人格結果定義 (已根據用戶要求更新文案，確保所有段落開頭都是單個全形空格)
+        const personalities = {
+            ASC: {
+                name: "理性控管者",
+                tagline: "穩中求勝，絕不亂押",
+                description: "　你是那種看到「穩定報酬 5%」就覺得心安的人。對你來說，世界要有秩序，生活要有規劃。你習慣在行動前先想清楚，日常連出門旅行都會列清單。別人說你慢，其實你只是不喜歡浪費。<br>　你常在腦中做小算盤：這樣做值不值？這個選擇長期划不划算？你對風險的敏感度比多數人高，也很難容忍「沒把事情做好」的自己。你不追求華麗的輸贏，而是希望每一步都合理、有邏輯、有意義。在人際裡，你是能讓人信任的那個；在愛情裡，你不太花言巧語，但會默默記得對方喜歡什麼、討厭什麼，照顧細節比甜言蜜語更能表達你的在乎。<br>　在投資上，你也是這樣——先研究、再行動。你不怕賺得慢，只怕亂了節奏。市場波動時你不慌張，因為你早就設定好停損與目標。<br><br>",
+                advice: "【投資特徵】<br>．習慣先研究再動作，偏好有數據支撐的決策<br>．對投資報酬率的波動容忍度低<br>．能在市場恐慌中保持冷靜，擅長資產分配與風險控管<br><br>【專業建議】<br>你適合採用 長期配置與系統化紀律投資 的模式<br>✅ ETF 定期定額、配息再投入<br>✅ 使用資產配置比例（如 60/40）控制風險<br>✅ 將理財自動化，減少情緒干擾<br><br>你是投資裡的「建築師」——一步步設計好未來，最後看著財務藍圖穩穩成形。<br><br>"
+            },
+            ARC: {
+                name: "主動獵手",
+                tagline: "看到機會，就先卡位",
+                description: "　你是那種「只要腦中有靈感，手就會先動」的人。你行動快、反應快，對變化特別有感覺。你不喜歡拖，喜歡在最熱的時候出擊。有時候別人還在猶豫，你已經完成決策，甚至開始下一步。<br>　你對生活的態度是「我不一定最穩，但一定最真」。你相信實戰比規劃重要，覺得機會是留給敢衝的人。你的人格裡帶著天生的自信與表現慾，擅長在不確定中找方向。愛情裡的你熱烈又直接，感覺對了就投入，但也需要對方懂得給空間，因為你害怕被綁住，不想被控制節奏。<br>　在投資上，你就是「市場節奏捕手」。你敢進、敢退，願意試錯。你享受波動的刺激，懂得利用短期節奏獲利；只是有時候，你衝太快，忘了替自己設安全繩。<br><br>",
+                advice: "【投資特徵】<br>．喜歡掌握即時市場資訊、追熱門題材<br>．行動果斷，成功率高時自信爆棚<br>．容易受市場情緒影響，但反應速度快<br><br>【專業建議】<br>你的強項是「行動力」與「市場嗅覺」，建議結合\"戰術性操作＋核心資產配置\"<br>⚡ 用 20～30% 資金操作主題ETF、短線標的、AI、電動車等題材。<br>🛡️ 其餘 70～80% 保留於穩健商品（高股息ETF、美債、美元定存）。<br><br>你天生是投資的「戰術家」，只要記得替自己留後路，市場的起落，反而會成為你的遊樂場。<br><br>"
+            },
+            ISC: {
+                name: "生活守護者",
+                tagline: "投資是為了過得安心，不是為了心臟病",
+                description: "　你是那種最怕「突發狀況」的人。你喜歡生活有節奏、步調可預測。朋友說你溫和、穩定、好相處，但你其實有自己的一套原則。你在意細節，不喜歡太多不確定；你會準備備案、備份，因為這樣才能安心。你做事踏實，不喜歡搶風頭，寧願穩穩地做好每一件事。<br>　在人際中，你是那個默默付出、讓大家都覺得舒服的存在。在愛情裡，你不喜歡太多戲劇性，最怕情緒化的人。你要的不是驚喜，而是能一起生活下去的安定。<br>　在投資上，你追求的也是這份安定。你不喜歡賺快錢，也不想被波動搞得焦慮。你相信錢該「有節奏地長」，就像人生該穩穩前進。<br><br>",
+                advice: "【投資特徵】<br>☘️ 以長期安心為優先，不追高、不殺低<br>☘️ 喜歡穩定領息、穩定增值的商品<br>☘️ 建立三～六個月生活預備金<br>☘️ 將部分資金轉為定期收入來源（如月配息基金）<br><br>【專業建議】<br>你適合 現金流導向型投資<br>☘️ 存股、配息ETF、債券基金<br>☘️ 建立三～六個月生活預備金<br>☘️ 將部分資金轉為定期收入來源（如月配息基金）<br><br>投資對你而言，應該像泡咖啡：節奏剛好、香氣穩定，不急不躁。你的成功，不在賺得多，而是長久地「活得輕鬆」。<br><br>"
+            },
+            IRN: {
+                name: "成長合夥人",
+                tagline: "一起研究，一起變強",
+                description: "　你是那種看到新觀點就想立刻查資料的人。你對世界充滿好奇，喜歡理解背後的邏輯。你不一定是最激進的，但你永遠在進步。你願意學、願意問，也願意聽不同的想法。你的人格溫和、有耐性，不輕易批評別人。你相信每個人都有自己的步調，只要願意努力，就會變好。你重視「成長」這兩個字，不只是金錢上的，也包括思考與心靈。<br>　在愛情裡，你希望能和對方一起成長、一起學習。你不需要被照顧，只希望被理解。對你來說，關係最動人的地方，不是浪漫的驚喜，而是能並肩進步、一起變得更好。<br>　投資對你而言，是學習的一部分。你不怕研究、不怕花時間，會比較報酬率、記錄心得，從每次操作裡學經驗。你不是最快的，但你走得最久，因為你明白：穩定成長，才是最長遠的勝利。<br><br>",
+                advice: "【投資特徵】<br>．喜歡交流想法、吸收他人觀點<br>．對投資知識有熱忱，學得快、記得久<br>．通常投資節奏穩定、紀律性高<br><br>【專業建議】<br>你適合 學習導向＋成長型投資<br>📘 維持投資筆記習慣（紀錄想法與結果）<br>📘 參加投資社群或學習課程<br>📘 可延伸接觸量化策略、基本面研究、海外ETF<br><br>你是「投資世界的共學夥伴」——當別人孤軍奮戰時，你用分享讓自己更強。你的成長速度，會比你想像的快得多。<br><br>"
+            }
+        };
+
+        // ----------------------------------------------------
+        // 階段 1: 基本資料邏輯
+        // ----------------------------------------------------
+
+        /**
+         * 處理基本資料頁的單選按鈕選擇
+         * @param {string} groupName - 欄位名稱 (gender, age, experience)
+         * @param {string} value - 選擇的值
+         * @param {HTMLElement} element - 被點擊的按鈕元素
+         */
+        function selectOption(groupName, value, element) {
+            // 移除同組其他按鈕的 selected 樣式
+            const group = document.getElementById(`${groupName}-group`);
+            group.querySelectorAll('.btn').forEach(btn => {
+                btn.classList.remove('btn-selected');
+            });
+
+            // 為當前按鈕增加 selected 樣式
+            element.classList.add('btn-selected');
+            
+            // 儲存到全域 userInfo 暫存
+            userInfo[groupName] = value;
+        }
+
+        /**
+         * 處理「開始測驗」按鈕點擊事件
+         */
+        function handleInfoSubmit() {
+            const nameInput = document.getElementById('user-name');
+            userInfo.name = nameInput.value.trim();
+
+            // 檢查所有欄位是否已填寫/選擇
+            if (!userInfo.name || !userInfo.gender || !userInfo.age || !userInfo.experience) {
+                infoError.textContent = "還沒填完喔 👀";
+                infoError.classList.remove('hidden');
+                return;
+            }
+
+            infoError.classList.add('hidden');
+
+            // 儲存最終基本資料到 console
+            console.log("user_profile", userInfo);
+            
+            // 切換到測驗階段
+            infoSection.classList.add('hidden');
+            quizSection.classList.remove('hidden');
+
+            // 開始載入第一題
+            renderQuestion();
+        }
+
+        // ----------------------------------------------------
+        // 階段 2: 題目作答邏輯
+        // ----------------------------------------------------
+
+        /**
+         * 渲染當前題目，並還原歷史選擇
+         */
+        function renderQuestion() {
+            if (currentQuestionIndex >= questions.length) {
+                // 結束測驗，切換到結果頁
+                showResults();
+                return;
+            }
+
+            const q = questions[currentQuestionIndex];
+            const qNumber = currentQuestionIndex + 1;
+            
+            // 檢查歷史紀錄，如果有答案則還原
+            const prevAnswer = answerHistory[currentQuestionIndex];
+            selectedChoiceValue = prevAnswer ? prevAnswer.choice : null;
+            
+            quizError.classList.add('hidden');
+            
+            // 處理按鈕文字
+            nextButton.textContent = qNumber === questions.length ? '看結果' : '下一題';
+
+            // 更新按鈕排版 (Q1 隱藏上一題，下一題佔滿)
+            if (currentQuestionIndex === 0) {
+                backButton.classList.add('hidden');
+                nextButton.classList.remove('w-1/2');
+                nextButton.classList.add('w-full');
+            } else {
+                backButton.classList.remove('hidden');
+                nextButton.classList.add('w-1/2');
+                nextButton.classList.remove('w-full');
+            }
+
+
+            // 更新進度條
+            currentProgress.textContent = `${qNumber} / ${questions.length} 題`;
+            const progress = (qNumber - 1) / questions.length * 100;
+            progressFill.style.width = `${progress}%`;
+
+            let html = `
+                <div class="mb-4">
+                    <h2 class="text-xl font-bold mb-4" style="color: var(--primary-color);">
+                        Q${qNumber}：${q.question}
+                    </h2>
+                    <div id="option-select-group" class="option-group option-group-full space-y-3">
+            `;
+
+            const choices = ['A', 'B', 'C', 'D'];
+            q.options.forEach((optionText, index) => {
+                const choiceLetter = choices[index];
+                const isSelected = selectedChoiceValue === choiceLetter ? 'btn-selected' : '';
+                html += `
+                    <button 
+                        type="button" 
+                        class="btn btn-option btn-quiz-option ${isSelected}" 
+                        data-choice="${choiceLetter}" 
+                        onclick="handleOptionSelect(${qNumber}, '${choiceLetter}', '${optionText}', this)">
+                        ${choiceLetter}. ${optionText}
+                    </button>
+                `;
+            });
+
+            html += `
+                    </div>
+                </div>
+            `;
+            
+            questionArea.innerHTML = html;
+        }
+
+        /**
+         * 處理選項按鈕點擊
+         * @param {number} qNumber - 題號 (1-based)
+         * @param {string} choiceLetter - 選項字母 (A, B, C, D)
+         * @param {string} optionText - 選項文字內容
+         * @param {HTMLElement} element - 被點擊的按鈕元素
+         */
+        function handleOptionSelect(qNumber, choiceLetter, optionText, element) {
+            
+            // 移除同組其他按鈕的 selected 樣式
+            const group = document.getElementById('option-select-group');
+            group.querySelectorAll('.btn-quiz-option').forEach(btn => {
+                btn.classList.remove('btn-selected');
+            });
+
+            // 為當前按鈕增加 selected 樣式
+            element.classList.add('btn-selected');
+
+            // 暫存選項值
+            selectedChoiceValue = choiceLetter;
+            
+            console.log("answer_selected", { 
+                question: qNumber, 
+                choice: choiceLetter, 
+                text: optionText
+            });
+            
+            quizError.classList.add('hidden');
+        }
+
+        /**
+         * 處理「下一題」按鈕點擊
+         */
+        function nextQuestion() {
+            // 檢查是否已選擇選項 (更新錯誤訊息)
+            if (!selectedChoiceValue) {
+                quizError.textContent = "你忘記選擇啦👆";
+                quizError.classList.remove('hidden');
+                return;
+            }
+            
+            // 紀錄當前答案到歷史紀錄中
+            const qNumber = currentQuestionIndex + 1;
+            const addsCode = scoreMap[qNumber][selectedChoiceValue];
+            
+            answerHistory[currentQuestionIndex] = { 
+                q: qNumber, 
+                choice: selectedChoiceValue, 
+                scoreCode: addsCode 
+            };
+
+            console.log("answer_submitted", { 
+                question: qNumber, 
+                final_choice: selectedChoiceValue, 
+                adds_to: addsCode, 
+                history_length: answerHistory.length
+            });
+
+
+            currentQuestionIndex++;
+            
+            if (currentQuestionIndex < questions.length) {
+                console.log("next_question", { to: currentQuestionIndex + 1 });
+                // 延遲渲染以確保 log 順序
+                setTimeout(renderQuestion, 100); 
+            } else {
+                // 顯示最終進度 (100%)
+                progressFill.style.width = '100%';
+                
+                // 結束測驗
+                console.log("next_question", { to: "Result_Page" });
+                setTimeout(showResults, 300); 
+            }
+        }
+        
+        /**
+         * 處理「上一題」按鈕點擊
+         */
+        function prevQuestion() {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                // renderQuestion 會自動從 history 中載入答案
+                renderQuestion();
+                console.log("prev_question", { to: currentQuestionIndex + 1 });
+            }
+        }
+
+        // ----------------------------------------------------
+        // 階段 3: 結果頁邏輯
+        // ----------------------------------------------------
+
+        /**
+         * 根據 answerHistory 重新計算最終分數
+         */
+        function calculateResult() {
+            let score = { ASC: 0, ARC: 0, ISC: 0, IRN: 0 };
+            
+            // 從歷史紀錄重新計算分數
+            answerHistory.forEach(answer => {
+                if (answer && answer.scoreCode) {
+                    score[answer.scoreCode]++;
+                }
+            });
+
+            let maxScore = -1;
+            let resultType = 'ASC'; // 預設值
+            
+            for (const type in score) {
+                if (score[type] > maxScore) {
+                    maxScore = score[type];
+                    resultType = type;
+                }
+            }
+
+            console.log("final_result", { type: resultType, scores: score });
+            return resultType;
+        }
+
+        /**
+         * 顯示最終結果頁面
+         */
+        function showResults() {
+            quizSection.classList.add('hidden');
+            resultSection.classList.remove('hidden');
+
+            const finalType = calculateResult();
+            const resultData = personalities[finalType];
+            
+            document.getElementById('result-greeting').innerHTML = 
+                `嗨，<span style="color: var(--primary-color);">${userInfo.name}</span>！你的理財人格是——`;
+
+            document.getElementById('result-display-area').innerHTML = `
+                <p class="result-code">${finalType}</p>
+                <p class="result-name">${resultData.name}</p>
+                <span class="result-tagline">${resultData.tagline}</span>
+
+                <div class="text-left mt-6 space-y-4">
+                    <!-- 描述 -->
+                    <div class="p-4 border-l-4 border-r-4 rounded-lg" style="border-color: var(--primary-color); background-color: #f0f4ff;">
+                        <h4 class="font-bold text-lg mb-2" style="color: var(--primary-dark);">【描述】</h4>
+                        <p>${resultData.description}</p>
+                    </div>
+                    
+                    <!-- 投資建議 -->
+                    <div class="p-4 border-l-4 border-r-4 rounded-lg" style="border-color: #10b981; background-color: #e6f7f2;">
+                        <h4 class="font-bold text-lg mb-2" style="color: #059669;">【投資建議】</h4>
+                        <p>${resultData.advice}</p>
+                    </div>
+                </div>
+            `;
+        }
+        
+        /**
+         * 處理「分享結果」按鈕點擊事件，改為觸發瀏覽器列印功能 (儲存為 PDF)
+         */
+        function printResult() {
+            showTemporaryMessage('請在彈出的對話框中，選擇「儲存為 PDF」以轉發檔案。', '#2563eb');
+            // 延遲執行 print，確保訊息框有足夠時間顯示 (可選，但能提升體驗)
+            setTimeout(() => {
+                window.print();
+            }, 500);
+            
+            console.log("print_result_attempt", { action: "Trigger_Browser_Print" });
+        }
+
+        /**
+         * 顯示臨時訊息框 (Toast/Snackbar)
+         */
+        function showTemporaryMessage(message, color) {
+            messageBox.textContent = message;
+            messageBox.style.backgroundColor = color;
+            messageBox.classList.add('visible');
+            
+            // 自動隱藏
+            setTimeout(() => {
+                messageBox.classList.remove('visible');
+            }, 3500);
+        }
+        
+        /**
+         * 重設測驗狀態並回到基本資料頁
+         */
+        function resetQuiz() {
+            // 重置狀態
+            userInfo = {};
+            currentQuestionIndex = 0;
+            answerHistory = Array(totalQuestions).fill(null);
+            selectedChoiceValue = null;
+
+            // 重置 UI
+            document.getElementById('user-name').value = '';
+            document.querySelectorAll('#gender-group .btn, #age-group .btn, #experience-group .btn').forEach(btn => {
+                btn.classList.remove('btn-selected');
+            });
+            
+            // 切換回基本資料頁
+            resultSection.classList.add('hidden');
+            quizSection.classList.add('hidden');
+            infoSection.classList.remove('hidden');
+
+            console.log("quiz_reset", { status: "Back_To_Start" });
+        }
+        
+        // 頁面載入完成時，確保顯示第一個區塊
+        document.addEventListener('DOMContentLoaded', () => {
+            // 確保所有區塊的初始狀態正確
+            infoSection.classList.remove('hidden');
+            quizSection.classList.add('hidden');
+            resultSection.classList.add('hidden');
+        });
+        
+    </script>
+
+</body>
+</html>
